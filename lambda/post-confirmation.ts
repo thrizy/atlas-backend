@@ -12,6 +12,8 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
   if (!sub || !email) return event;
 
   const handle = email.split("@")[0];
+  // Nickname collected at sign-up (falls back to the email handle).
+  const nickname = event.request.userAttributes.nickname?.trim() || handle;
   const now = new Date().toISOString();
 
   try {
@@ -24,7 +26,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
           type: "PROFILE",
           email,
           username: handle,
-          nickname: handle,
+          nickname,
           firstName: "",
           lastName: "",
           phone: "",
