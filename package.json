@@ -1,0 +1,30 @@
+{
+  "name": "atlas-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Atlas backend infrastructure (CDK) — DynamoDB, Cognito, API Gateway, Lambda. Phase 1.",
+  "bin": {
+    "atlas": "bin/atlas.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy",
+    "bootstrap": "cdk bootstrap"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.658.0",
+    "@aws-sdk/lib-dynamodb": "^3.658.0",
+    "aws-cdk-lib": "^2.160.0",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.16.0",
+    "aws-cdk": "^2.160.0",
+    "esbuild": "^0.24.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  }
+}
