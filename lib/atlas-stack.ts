@@ -79,8 +79,10 @@ export class AtlasStack extends cdk.Stack {
     const env = { TABLE_NAME: table.tableName };
     const getProfile = this.fn("GetProfileFn", "get-profile.ts", env);
     const getAccounts = this.fn("GetAccountsFn", "get-accounts.ts", env);
+    const read = this.fn("ReadFn", "read.ts", env);
     table.grantReadData(getProfile);
     table.grantReadData(getAccounts);
+    table.grantReadData(read);
 
     // ── HTTP API + Cognito JWT authorizer ───────────────────────────────────
     const authorizer = new HttpUserPoolAuthorizer("Authorizer", userPool, {
@@ -112,6 +114,24 @@ export class AtlasStack extends cdk.Stack {
       integration: new HttpLambdaIntegration("GetAccountsInt", getAccounts),
       authorizer,
     });
+
+    // Per-user read endpoints (all dispatched to the read Lambda).
+    const readInt = new HttpLambdaIntegration("ReadInt", read);
+    for (const path of [
+      "/orders",
+      "/payments",
+      "/certificates",
+      "/rewards",
+      "/payouts",
+      "/accounts/{id}",
+    ]) {
+      api.addRoutes({
+        path,
+        methods: [apigwv2.HttpMethod.GET],
+        integration: readInt,
+        authorizer,
+      });
+    }
 
     // ── Outputs (feed these into the dashboard's Amplify env) ───────────────
     new cdk.CfnOutput(this, "ApiUrl", { value: api.apiEndpoint });
