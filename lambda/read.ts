@@ -17,6 +17,15 @@ const PLAN_LABEL: Record<string, string> = {
   "100k": "ATLAS 100K",
   "150k": "ATLAS 150K",
 };
+// Standard (non-daily) max payout per request, by size.
+const STANDARD_CAP: Record<string, number> = {
+  "25k": 1000,
+  "50k": 2500,
+  "100k": 3500,
+  "150k": 3500,
+};
+// Standard accounts can withdraw up to 50% of accumulated profit per request.
+const WITHDRAWABLE_PCT = 0.5;
 
 async function listByPrefix(userId: string, prefix: string) {
   const res = await ddb.send(
@@ -64,13 +73,20 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
       ]);
       const eligible = accounts
         .filter((a) => a.type === "funded" && a.status === "active")
-        .map((a) => ({
-          accountNo: a.accountNo,
-          planLabel: PLAN_LABEL[a.planId] ?? a.planId,
-          available: Math.max(0, (a.balance ?? 0) - (PLAN_SIZE[a.planId] ?? 0)),
-          split: "80/20",
-          minPayout: 500,
-        }));
+        .map((a) => {
+          const profit = Math.max(0, (a.balance ?? 0) - (PLAN_SIZE[a.planId] ?? 0));
+          const available = Math.min(
+            STANDARD_CAP[a.planId] ?? Infinity,
+            Math.round(profit * WITHDRAWABLE_PCT)
+          );
+          return {
+            accountNo: a.accountNo,
+            planLabel: PLAN_LABEL[a.planId] ?? a.planId,
+            available,
+            split: "80/20",
+            minPayout: 500,
+          };
+        });
       const card = payments[0];
       return json(200, {
         history,
