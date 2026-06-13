@@ -68,8 +68,8 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
           accountNo: a.accountNo,
           planLabel: PLAN_LABEL[a.planId] ?? a.planId,
           available: Math.max(0, (a.balance ?? 0) - (PLAN_SIZE[a.planId] ?? 0)),
-          split: "90/10",
-          minPayout: 250,
+          split: "80/20",
+          minPayout: 500,
         }));
       const card = payments[0];
       return json(200, {
