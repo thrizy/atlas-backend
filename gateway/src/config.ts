@@ -1,6 +1,9 @@
 export const API_KEY = process.env.DATABENTO_API_KEY ?? "";
 export const DATASET = process.env.DATABENTO_DATASET ?? "GLBX.MDP3";
-export const STYPE_IN = process.env.DATABENTO_STYPE_IN ?? "raw_symbol";
+// "continuous" maps Waves symbols (ESM6) → front-month continuous (ES.c.0), which
+// auto-rolls — correct for a live terminal. "raw_symbol" passes ESM6 through as-is
+// (only useful for a specific non-expired contract).
+export const STYPE_IN = process.env.DATABENTO_STYPE_IN ?? "continuous";
 export const PORT = Number(process.env.PORT ?? 8080);
 export const ALLOWED_ORIGIN = process.env.GATEWAY_ALLOWED_ORIGIN ?? "*";
 export const LIVE_POLL_SECONDS = Number(process.env.LIVE_POLL_SECONDS ?? 3);

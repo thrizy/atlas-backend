@@ -9,6 +9,17 @@ export type Bar = {
   volume: number;
 };
 
+// Map a Waves symbol to the Databento symbol for the configured symbology.
+//   continuous  → strip trailing month+year (ESM6 → ES) → front month "ES.c.0"
+//   raw_symbol  → pass through unchanged (ESM6)
+export function resolveDatabentoSymbol(symbol: string): string {
+  if (STYPE_IN === "continuous") {
+    const root = symbol.replace(/[FGHJKMNQUVXZ]\d{1,2}$/i, ""); // drop month code + year digits
+    return `${root || symbol}.c.0`;
+  }
+  return symbol;
+}
+
 // resolution (seconds) → Databento OHLCV base schema + aggregation factor.
 // Databento provides ohlcv-1s / 1m / 1h / 1d; 5m/15m/4h are aggregated here.
 export function planFor(resSec: number): { schema: string; baseSec: number } {
@@ -28,14 +39,19 @@ type OhlcvRecord = {
   volume: string | number;
 };
 
+// Scale a fixed-point int price and round off binary-float artifacts
+// (7515750000000 * 1e-9 = 7515.750000000001 → 7515.75). 6 dp covers every
+// CME tick (min 0.005 on some products).
+const px = (v: string | number) => Math.round(Number(v) * PRICE_SCALE * 1e6) / 1e6;
+
 function toBar(rec: OhlcvRecord): Bar {
   const tsNs = Number(rec.hd?.ts_event ?? rec.ts_event ?? 0);
   return {
     time: Math.floor(tsNs / 1e9), // ns → seconds
-    open: Number(rec.open) * PRICE_SCALE,
-    high: Number(rec.high) * PRICE_SCALE,
-    low: Number(rec.low) * PRICE_SCALE,
-    close: Number(rec.close) * PRICE_SCALE,
+    open: px(rec.open),
+    high: px(rec.high),
+    low: px(rec.low),
+    close: px(rec.close),
     volume: Number(rec.volume),
   };
 }
@@ -78,7 +94,7 @@ export async function fetchHistory(
   const { schema, baseSec } = planFor(resSec);
   const url = new URL("https://hist.databento.com/v0/timeseries.get_range");
   url.searchParams.set("dataset", DATASET);
-  url.searchParams.set("symbols", symbol);
+  url.searchParams.set("symbols", resolveDatabentoSymbol(symbol));
   url.searchParams.set("schema", schema);
   url.searchParams.set("stype_in", STYPE_IN);
   url.searchParams.set("start", new Date(fromSec * 1000).toISOString());
