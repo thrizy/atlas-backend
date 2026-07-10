@@ -1,6 +1,6 @@
 import http from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
-import { PORT, ALLOWED_ORIGIN, configured } from "./config.js";
+import { PORT, ALLOWED_ORIGIN, GATEWAY_TOKEN, configured } from "./config.js";
 import { fetchHistory, type Bar } from "./databento.js";
 import { PollingLiveSource, type BarHandler } from "./live.js";
 
@@ -29,6 +29,11 @@ const server = http.createServer(async (req, res) => {
 
   // GET /bars?symbol=ESM6&res=60&from=<sec>&to=<sec>&limit=320
   if (url.pathname === "/bars" && req.method === "GET") {
+    if (GATEWAY_TOKEN && req.headers.authorization !== `Bearer ${GATEWAY_TOKEN}`) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "unauthorized" }));
+      return;
+    }
     const symbol = url.searchParams.get("symbol") ?? "";
     const resSec = Number(url.searchParams.get("res") ?? 60);
     const from = Number(url.searchParams.get("from") ?? 0);
@@ -57,7 +62,14 @@ const server = http.createServer(async (req, res) => {
 // --- live bars over WSS: /ws ---
 const wss = new WebSocketServer({ server, path: "/ws" });
 
-wss.on("connection", (ws: WebSocket) => {
+wss.on("connection", (ws: WebSocket, req: http.IncomingMessage) => {
+  if (GATEWAY_TOKEN) {
+    const u = new URL(req.url ?? "/", `http://${req.headers.host}`);
+    if (u.searchParams.get("token") !== GATEWAY_TOKEN) {
+      ws.close(1008, "unauthorized");
+      return;
+    }
+  }
   const subs = new Map<string, BarHandler>();
   const keyOf = (symbol: string, res: number) => `${symbol}|${res}`;
 

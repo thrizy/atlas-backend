@@ -8,6 +8,12 @@ export const PORT = Number(process.env.PORT ?? 8080);
 export const ALLOWED_ORIGIN = process.env.GATEWAY_ALLOWED_ORIGIN ?? "*";
 export const LIVE_POLL_SECONDS = Number(process.env.LIVE_POLL_SECONDS ?? 3);
 
+// Shared bearer token gating /bars + /ws. When set, only callers presenting it
+// (i.e. the gated Waves app) can reach the gateway — so the endpoint isn't open
+// to the public pulling data through your Databento key. Empty = open (local dev).
+// (Upgrade to Cognito JWT verification when Waves opens to multiple users.)
+export const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN ?? "";
+
 // Databento encodes prices as fixed-point int64 in units of 1e-9.
 // VERIFY against the ohlcv schema docs on first live test.
 export const PRICE_SCALE = 1e-9;
