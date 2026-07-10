@@ -1,4 +1,4 @@
-import { API_KEY, DATASET, STYPE_IN, PRICE_SCALE } from "./config.js";
+import { API_KEY, DATASET, STYPE_IN, PRICE_SCALE, HISTORY_DELAY_SEC } from "./config.js";
 
 export type Bar = {
   time: number; // unix seconds
@@ -92,13 +92,21 @@ export async function fetchHistory(
   limit: number
 ): Promise<Bar[]> {
   const { schema, baseSec } = planFor(resSec);
+
+  // Clamp end to the available window (historical lags ~15-20 min; requesting a
+  // too-recent end errors the whole request). Keep from < to.
+  const nowSec = Math.floor(Date.now() / 1000);
+  const safeTo = Math.min(toSec, nowSec - HISTORY_DELAY_SEC);
+  if (safeTo <= 0) return [];
+  const safeFrom = fromSec < safeTo ? fromSec : safeTo - resSec * Math.max(limit, 2);
+
   const url = new URL("https://hist.databento.com/v0/timeseries.get_range");
   url.searchParams.set("dataset", DATASET);
   url.searchParams.set("symbols", resolveDatabentoSymbol(symbol));
   url.searchParams.set("schema", schema);
   url.searchParams.set("stype_in", STYPE_IN);
-  url.searchParams.set("start", new Date(fromSec * 1000).toISOString());
-  url.searchParams.set("end", new Date(toSec * 1000).toISOString());
+  url.searchParams.set("start", new Date(safeFrom * 1000).toISOString());
+  url.searchParams.set("end", new Date(safeTo * 1000).toISOString());
   url.searchParams.set("encoding", "json");
 
   const auth = Buffer.from(`${API_KEY}:`).toString("base64"); // key as username, empty password
