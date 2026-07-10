@@ -11,7 +11,7 @@ export const LIVE_POLL_SECONDS = Number(process.env.LIVE_POLL_SECONDS ?? 3);
 // Databento HISTORICAL lags real-time by ~15-20 min, and it errors a request whose
 // end is beyond available data. So clamp every history `to` to now - this delay.
 // (The true recent gap is filled only by the Databento LIVE client — not wired yet.)
-export const HISTORY_DELAY_SEC = Number(process.env.HISTORY_DELAY_SEC ?? 1200);
+export const HISTORY_DELAY_SEC = Number(process.env.HISTORY_DELAY_SEC ?? 480);
 
 // Shared bearer token gating /bars + /ws. When set, only callers presenting it
 // (i.e. the gated Waves app) can reach the gateway — so the endpoint isn't open
