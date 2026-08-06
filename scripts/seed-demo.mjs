@@ -41,7 +41,7 @@ const PLANS = {
   "100k": { size: 100000, target: 106000, mll: 97000 },
   "150k": { size: 150000, target: 159000, mll: 145500 },
 };
-const DEF_PLATFORMS = ["NinjaTrader", "Tradovate", "TradingView"];
+const DEF_PLATFORMS = ["Waves", "Web", "Desktop"];
 
 // ── accounts (mirror MOCK_ACCOUNTS) ──────────────────────────────────────────
 const ACCOUNTS = [
@@ -49,9 +49,9 @@ const ACCOUNTS = [
   { id: "100640027", planId: "100k", type: "eval", status: "passed", balance: 106240, tradingDays: 4, consistency: 72 },
   { id: "50640024", planId: "50k", type: "funded", status: "active", balance: 54800, tradingDays: 6, consistency: 71 },
   { id: "50640022", planId: "50k", type: "eval", status: "active", balance: 50890, tradingDays: 2, consistency: 81 },
-  { id: "100640023", planId: "100k", type: "eval", status: "active", balance: 103120, tradingDays: 5, consistency: 47, platforms: ["Tradovate", "TradingView"] },
+  { id: "100640023", planId: "100k", type: "eval", status: "active", balance: 103120, tradingDays: 5, consistency: 47, platforms: ["Waves", "Web"] },
   { id: "25640025", planId: "25k", type: "eval", status: "breached", balance: 23910, tradingDays: 1, consistency: 100 },
-  { id: "150640026", planId: "150k", type: "eval", status: "breached", balance: 145110, tradingDays: 2, consistency: 100, platforms: ["NinjaTrader", "Quantower"] },
+  { id: "150640026", planId: "150k", type: "eval", status: "breached", balance: 145110, tradingDays: 2, consistency: 100, platforms: ["Waves", "Desktop"] },
 ];
 
 // ── orders (mirror ORDERS) ───────────────────────────────────────────────────
